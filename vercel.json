@@ -1,7 +1,4 @@
 {
   "version": 2,
-  "framework": "tanstack-start",
-  "rewrites": [
-    { "source": "/(.*)", "destination": "/" }
-  ]
+  "framework": "tanstack-start"
 }
