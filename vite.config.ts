@@ -15,4 +15,11 @@ export default defineConfig({
     tailwindcss(),
     tsconfigPaths(),
   ],
+  // Add an extra layer of protection to keep mongodb out of the client
+  ssr: {
+    external: ["mongodb"],
+  },
+  optimizeDeps: {
+    exclude: ["mongodb"],
+  },
 });
