@@ -12,7 +12,7 @@ import {
   ResponsiveContainer, AreaChart, Area, XAxis, YAxis, Tooltip, CartesianGrid,
 } from "recharts";
 import { jwtDecode } from "jwt-decode";
-import { getLinks, createLink, deleteLink, updateLinkStatus } from "../lib/api/links.functions";
+import { getLinks, createLink, deleteLink, updateLinkStatus } from "../lib/api/links.functions.server";
 
 export const Route = createFileRoute("/app")({
   head: () => ({
