@@ -1,18 +1,22 @@
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
-import { getCollection } from "../mongodb.server";
+
+// Helper to get collection only on the server
+async function _getLinksCollection() {
+  const { getCollection } = await import("../mongodb.server");
+  return getCollection("links");
+}
 
 export const getLinks = createServerFn({ method: "POST" })
   .validator(z.object({ userId: z.string() }))
   .handler(async ({ data }) => {
     try {
-      const collection = await getCollection("links");
+      const collection = await _getLinksCollection();
       const documents = await collection
         .find({ userId: { $regex: new RegExp(`^${data.userId}$`, "i") } })
         .sort({ createdAt: -1 })
         .toArray();
       
-      console.log(`Found ${documents.length} links for user: ${data.userId}`);
       return documents.map(doc => ({
         id: doc._id.toString(),
         alias: doc.alias,
@@ -37,9 +41,8 @@ export const createLink = createServerFn({ method: "POST" })
   }))
   .handler(async ({ data }) => {
     try {
-      const collection = await getCollection("links");
+      const collection = await _getLinksCollection();
       
-      // Check if alias already exists
       const existing = await collection.findOne({ alias: data.alias });
       if (existing) {
         throw new Error("Alias already taken");
@@ -64,16 +67,14 @@ export const createLink = createServerFn({ method: "POST" })
 export const trackLinkClick = createServerFn({ method: "POST" })
   .validator(z.object({ alias: z.string() }))
   .handler(async ({ data }) => {
-    // User agent detection — empty string means device defaults to "Desktop"
     const userAgent = "";
     
     try {
-      const collection = await getCollection("links");
+      const collection = await _getLinksCollection();
       
       const findResult = await collection.findOne({ alias: data.alias });
       if (!findResult || findResult.active === false) return null;
 
-      // Basic device/browser detection
       const isMobile = /Mobile|Android|iPhone/i.test(userAgent);
       const browser = /Chrome/i.test(userAgent) ? "Chrome" : 
                       /Safari/i.test(userAgent) ? "Safari" :
@@ -83,13 +84,11 @@ export const trackLinkClick = createServerFn({ method: "POST" })
         timestamp: new Date().toISOString(),
         device: isMobile ? "Mobile" : "Desktop",
         browser,
-        location: "Local", // Simple placeholder, could use geoip later
+        location: "Local",
       };
 
-      // Rotate history: shift left and increment last slot for today
       const existing = await collection.findOne({ alias: data.alias });
       const currentHistory: number[] = existing?.history ?? [0, 0, 0, 0, 0, 0, 0];
-      // Shift the array and add 1 to today's slot
       const newHistory = [...currentHistory.slice(1), (currentHistory[6] ?? 0) + 1];
 
       const link = await collection.findOneAndUpdate(
@@ -122,7 +121,7 @@ export const deleteLink = createServerFn({ method: "POST" })
   .handler(async ({ data }) => {
     try {
       const { ObjectId } = await import("mongodb");
-      const collection = await getCollection("links");
+      const collection = await _getLinksCollection();
       await collection.deleteOne({ 
         _id: new ObjectId(data.id),
         userId: { $regex: new RegExp(`^${data.userId}$`, "i") }
@@ -139,7 +138,7 @@ export const updateLinkStatus = createServerFn({ method: "POST" })
   .handler(async ({ data }) => {
     try {
       const { ObjectId } = await import("mongodb");
-      const collection = await getCollection("links");
+      const collection = await _getLinksCollection();
       await collection.updateOne(
         { 
           _id: new ObjectId(data.id),
