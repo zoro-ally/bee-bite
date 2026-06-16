@@ -19,16 +19,6 @@ export default defineConfig({
     tailwindcss(),
     tsconfigPaths(),
   ],
-  build: {
-    // This tells the build to ignore mongodb entirely for the browser
-    rollupOptions: {
-      external: ["mongodb"],
-    },
-  },
-  ssr: {
-    external: ["mongodb"],
-  },
-  optimizeDeps: {
-    exclude: ["mongodb"],
-  },
+  // We removed the strict 'external' blocks to allow the server to find its dependencies.
+  // The 'require is not defined' error is already handled by our shims in router.tsx and __root.tsx.
 });
