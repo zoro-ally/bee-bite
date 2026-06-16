@@ -1,3 +1,11 @@
+// 🛡️ BROWSER SAFETY SHIM: Prevents 'require is not defined' crashes in production
+if (typeof window !== "undefined") {
+  (window as any).global = window;
+  if (typeof (window as any).require === "undefined") {
+    (window as any).require = () => ({});
+  }
+}
+
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import {
   Outlet,

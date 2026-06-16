@@ -6,7 +6,6 @@ import tailwindcss from "@tailwindcss/vite";
 import { nitro } from "nitro/vite";
 
 export default defineConfig({
-  // Global definitions to stop libraries from crashing the browser
   define: {
     "process.env": {},
     "global": "globalThis",
@@ -20,6 +19,12 @@ export default defineConfig({
     tailwindcss(),
     tsconfigPaths(),
   ],
+  build: {
+    // This tells the build to ignore mongodb entirely for the browser
+    rollupOptions: {
+      external: ["mongodb"],
+    },
+  },
   ssr: {
     external: ["mongodb"],
   },
