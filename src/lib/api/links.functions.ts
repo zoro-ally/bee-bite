@@ -1,12 +1,20 @@
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
-import { getCollection } from "../mongodb.server";
+
+/**
+ * 🔒 SERVER-ONLY: Dynamically imports the database collection.
+ * This is the ONLY safe way to ensure 'mongodb' never reaches the browser.
+ */
+async function getLinksCollection() {
+  const { getCollection } = await import("../mongodb.server");
+  return getCollection("links");
+}
 
 export const getLinks = createServerFn({ method: "POST" })
   .validator(z.object({ userId: z.string() }))
   .handler(async ({ data }) => {
     try {
-      const collection = await getCollection("links");
+      const collection = await getLinksCollection();
       const documents = await collection
         .find({ userId: { $regex: new RegExp(`^${data.userId}$`, "i") } })
         .sort({ createdAt: -1 })
@@ -36,7 +44,7 @@ export const createLink = createServerFn({ method: "POST" })
   }))
   .handler(async ({ data }) => {
     try {
-      const collection = await getCollection("links");
+      const collection = await getLinksCollection();
       
       const existing = await collection.findOne({ alias: data.alias });
       if (existing) {
@@ -62,25 +70,11 @@ export const createLink = createServerFn({ method: "POST" })
 export const trackLinkClick = createServerFn({ method: "POST" })
   .validator(z.object({ alias: z.string() }))
   .handler(async ({ data }) => {
-    const userAgent = "";
-    
     try {
-      const collection = await getCollection("links");
+      const collection = await getLinksCollection();
       
       const findResult = await collection.findOne({ alias: data.alias });
       if (!findResult || findResult.active === false) return null;
-
-      const isMobile = /Mobile|Android|iPhone/i.test(userAgent);
-      const browser = /Chrome/i.test(userAgent) ? "Chrome" : 
-                      /Safari/i.test(userAgent) ? "Safari" :
-                      /Firefox/i.test(userAgent) ? "Firefox" : "Edge";
-
-      const newVisit = {
-        timestamp: new Date().toISOString(),
-        device: isMobile ? "Mobile" : "Desktop",
-        browser,
-        location: "Local",
-      };
 
       const existing = await collection.findOne({ alias: data.alias });
       const currentHistory: number[] = existing?.history ?? [0, 0, 0, 0, 0, 0, 0];
@@ -96,7 +90,12 @@ export const trackLinkClick = createServerFn({ method: "POST" })
           },
           $push: { 
             visits: { 
-              $each: [newVisit], 
+              $each: [{
+                timestamp: new Date().toISOString(),
+                device: "Unknown",
+                browser: "Unknown",
+                location: "Local",
+              }], 
               $slice: -50
             } 
           }
@@ -116,7 +115,7 @@ export const deleteLink = createServerFn({ method: "POST" })
   .handler(async ({ data }) => {
     try {
       const { ObjectId } = await import("mongodb");
-      const collection = await getCollection("links");
+      const collection = await getLinksCollection();
       await collection.deleteOne({ 
         _id: new ObjectId(data.id),
         userId: { $regex: new RegExp(`^${data.userId}$`, "i") }
@@ -133,7 +132,7 @@ export const updateLinkStatus = createServerFn({ method: "POST" })
   .handler(async ({ data }) => {
     try {
       const { ObjectId } = await import("mongodb");
-      const collection = await getCollection("links");
+      const collection = await getLinksCollection();
       await collection.updateOne(
         { 
           _id: new ObjectId(data.id),
