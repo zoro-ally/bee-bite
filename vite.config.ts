@@ -6,6 +6,11 @@ import tailwindcss from "@tailwindcss/vite";
 import { nitro } from "nitro/vite";
 
 export default defineConfig({
+  // Global definitions to stop libraries from crashing the browser
+  define: {
+    "process.env": {},
+    "global": "globalThis",
+  },
   plugins: [
     tanstackStart(),
     nitro({
@@ -15,7 +20,6 @@ export default defineConfig({
     tailwindcss(),
     tsconfigPaths(),
   ],
-  // Add an extra layer of protection to keep mongodb out of the client
   ssr: {
     external: ["mongodb"],
   },
