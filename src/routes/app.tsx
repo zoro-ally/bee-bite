@@ -28,6 +28,7 @@ type LinkRow = {
   id: string;
   alias: string;
   longUrl: string;
+  bitlyUrl?: string;
   clicks: number;
   createdAt: Date;
   active: boolean;
@@ -163,7 +164,7 @@ function Dashboard({ user, onLogout }: { user: { email: string; name: string }; 
     const alias = customAlias.trim() || randomAlias();
     
     try {
-      await createLink({ 
+      const result = await createLink({ 
         data: { 
           alias, 
           longUrl: longUrl.trim(), 
@@ -172,7 +173,7 @@ function Dashboard({ user, onLogout }: { user: { email: string; name: string }; 
       });
       setLongUrl(""); 
       setCustomAlias("");
-      showToast(`Created ${shortHost()}/${alias}`);
+      showToast(result.bitlyUrl ? `Created & Bitly'd: ${result.bitlyUrl}` : `Created ${shortHost()}/${alias}`);
       fetchLinks();
     } catch (e: any) {
       showToast(e.message || "Error creating link");
@@ -381,6 +382,14 @@ function LinkItem({ link, onCopy, onAnalytics, onDelete, onToggle }: {
             <button onClick={copy} className="font-semibold text-foreground hover:text-primary transition truncate">
               {short}
             </button>
+            {link.bitlyUrl && (
+              <button 
+                onClick={() => { navigator.clipboard.writeText(link.bitlyUrl!); toast.success("Bitly link copied"); }}
+                className="text-[10px] uppercase tracking-widest font-bold px-2 py-0.5 rounded-md bg-orange-500/10 text-orange-600 border border-orange-500/20 hover:bg-orange-500/20 transition"
+              >
+                Bitly: {link.bitlyUrl.replace("https://", "")}
+              </button>
+            )}
             <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${
               link.active ? "bg-success/15 text-[oklch(0.45_0.13_155)]" : "bg-muted text-muted-foreground"
             }`}>{link.active ? "Active" : "Paused"}</span>

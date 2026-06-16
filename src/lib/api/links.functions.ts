@@ -10,6 +10,33 @@ async function getLinksCollection() {
   return getCollection("links");
 }
 
+async function shortenWithBitly(longUrl: string) {
+  const token = process.env.BITLY_ACCESS_TOKEN;
+  if (!token) return null;
+
+  try {
+    const response = await fetch("https://api-ssl.bitly.com/v4/shorten", {
+      method: "POST",
+      headers: {
+        "Authorization": `Bearer ${token}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ long_url: longUrl }),
+    });
+
+    if (!response.ok) {
+      console.error("Bitly error:", await response.text());
+      return null;
+    }
+
+    const data = await response.json();
+    return data.link; // e.g., https://bit.ly/xxxx
+  } catch (err) {
+    console.error("Bitly fetch failed:", err);
+    return null;
+  }
+}
+
 export const getLinks = createServerFn({ method: "POST" })
   .validator(z.object({ userId: z.string() }))
   .handler(async ({ data }) => {
@@ -24,6 +51,7 @@ export const getLinks = createServerFn({ method: "POST" })
         id: doc._id.toString(),
         alias: doc.alias,
         longUrl: doc.longUrl,
+        bitlyUrl: doc.bitlyUrl,
         clicks: doc.clicks,
         createdAt: doc.createdAt,
         active: doc.active,
@@ -51,8 +79,12 @@ export const createLink = createServerFn({ method: "POST" })
         throw new Error("Alias already taken");
       }
 
+      // Generate Bitly link
+      const bitlyUrl = await shortenWithBitly(data.longUrl);
+
       const result = await collection.insertOne({
         ...data,
+        bitlyUrl,
         clicks: 0,
         active: true,
         createdAt: new Date().toISOString(),
@@ -60,7 +92,7 @@ export const createLink = createServerFn({ method: "POST" })
         visits: [],
       });
       
-      return { success: true, id: result.insertedId.toString() };
+      return { success: true, id: result.insertedId.toString(), bitlyUrl };
     } catch (error: any) {
       console.error("Error creating link:", error);
       throw new Error(error.message || "Failed to create link");
