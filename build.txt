@@ -1,0 +1,152 @@
+﻿
+> build
+> vite build
+
+[36mvite v7.3.5 [32mbuilding client environment for production...[36m[39m
+transforming...
+[32mÔ£ô[39m 2921 modules transformed.
+rendering chunks...
+node.exe : [31mÔ£ù[39m 
+Build failed in 24.30s
+At C:\Users\Ravi\AppData\Roami
+ng\npm\npm.ps1:24 char:5
++     & "node$exe"  "$basedir/
+node_modules/npm/bin/npm-cli.j
+s" $args
++     ~~~~~~~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+~~~~~~~~
+    + CategoryInfo          : 
+    NotSpecified: ([31mÔ£ù  
+  [39m Build failed in 24.3   
+ 0s:String) [], RemoteExce    
+ption
+    + FullyQualifiedErrorId : 
+    NativeCommandError
+ 
+[31merror during build:
+[31m[tanstack-start-core:impo
+rt-protection] [plugin tanstac
+k-start-core:import-protection
+] 
+[import-protection] Import 
+denied in client environment
+
+  Denied by file pattern: 
+**/*.server.*
+  Importer: d:/downlaode/link-
+blossom-main/link-blossom-main
+/src/routes/r.$alias.tsx:6:27
+  Import: "../lib/api/links.fu
+nctions.server"
+  Resolved: src/lib/api/links.
+functions.server.ts
+
+  Trace:
+    1. src/router.tsx:3:28 
+(entry) (import 
+"./routeTree.gen")
+    2. 
+src/routeTree.gen.ts:4:45 
+(import "./routes/r.$alias")
+    3. 
+src/routes/r.$alias.tsx:6:27 
+(import "../lib/api/links.func
+tions.server")
+
+  Code:
+    4 | export const Route = 
+createFileRoute("/r/$alias")({
+    5 |   loader: async ({ 
+params }) => {
+  > 6 |     const longUrl = 
+await trackLinkClick({ data: 
+{ alias: params.alias } });
+      |                       
+    ^
+    7 |     
+    8 |     if (longUrl) {
+
+  d:/downlaode/link-blossom-ma
+in/link-blossom-main/src/route
+s/r.$alias.tsx:6:27
+
+  Suggestions:
+    - Use 
+createServerFn().handler(() 
+=> ...) to keep the logic on 
+the server and call it from 
+the client via an RPC bridge
+    - Use 
+createServerOnlyFn(() => ...) 
+to mark it as server-only (it 
+will throw if accidentally 
+called from the client)
+    - Use createIsomorphicFn()
+.client(() => ...).server(() 
+=> ...) to provide separate 
+client and server 
+implementations
+    - Move the server-only 
+import out of this file into 
+a separate .server.ts module 
+that is not imported by any 
+client code
+[31m
+    at getRollupError (file://
+/D:/downlaode/link-blossom-mai
+n/link-blossom-main/node_modul
+es/rollup/dist/es/shared/parse
+Ast.js:317:41)
+    at error (file:///D:/downl
+aode/link-blossom-main/link-bl
+ossom-main/node_modules/rollup
+/dist/es/shared/parseAst.js:31
+3:42)
+    at Object.error (file:///D
+:/downlaode/link-blossom-main/
+link-blossom-main/node_modules
+/rollup/dist/es/shared/node-en
+try.js:22680:20)
+    at Object.generateBundle (
+file:///D:/downlaode/link-blos
+som-main/link-blossom-main/nod
+e_modules/@tanstack/react-star
+t/node_modules/@tanstack/start
+-plugin-core/dist/esm/vite/imp
+ort-protection-plugin/plugin.j
+s:1027:51)
+    at async Bundle.generate (
+file:///D:/downlaode/link-blos
+som-main/link-blossom-main/nod
+e_modules/rollup/dist/es/share
+d/node-entry.js:21059:9)
+    at async file:///D:/downla
+ode/link-blossom-main/link-blo
+ssom-main/node_modules/rollup/
+dist/es/shared/node-entry.js:2
+3989:27
+    at async 
+catchUnfinishedHookActions (fi
+le:///D:/downlaode/link-blosso
+m-main/link-blossom-main/node_
+modules/rollup/dist/es/shared/
+node-entry.js:23356:16)
+    at async buildEnvironment 
+(file:///D:/downlaode/link-blo
+ssom-main/link-blossom-main/no
+de_modules/vite/dist/node/chun
+ks/config.js:33623:64)
+    at async Object.build (fil
+e:///D:/downlaode/link-blossom
+-main/link-blossom-main/node_m
+odules/vite/dist/node/chunks/c
+onfig.js:33980:19)
+    at async 
+buildStartViteEnvironments (fi
+le:///D:/downlaode/link-blosso
+m-main/link-blossom-main/node_
+modules/@tanstack/react-start/
+node_modules/@tanstack/start-p
+lugin-core/dist/esm/vite/plann
+ing.js:95:23)[39m

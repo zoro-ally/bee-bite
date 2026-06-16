@@ -1,23 +1,18 @@
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
-
-// Helper to get collection only on the server
-async function _getLinksCollection() {
-  const { getCollection } = await import("../mongodb.server");
-  return getCollection("links");
-}
+import { getCollection } from "../mongodb.server";
 
 export const getLinks = createServerFn({ method: "POST" })
   .validator(z.object({ userId: z.string() }))
   .handler(async ({ data }) => {
     try {
-      const collection = await _getLinksCollection();
+      const collection = await getCollection("links");
       const documents = await collection
         .find({ userId: { $regex: new RegExp(`^${data.userId}$`, "i") } })
         .sort({ createdAt: -1 })
         .toArray();
       
-      return documents.map(doc => ({
+      return documents.map((doc: any) => ({
         id: doc._id.toString(),
         alias: doc.alias,
         longUrl: doc.longUrl,
@@ -41,7 +36,7 @@ export const createLink = createServerFn({ method: "POST" })
   }))
   .handler(async ({ data }) => {
     try {
-      const collection = await _getLinksCollection();
+      const collection = await getCollection("links");
       
       const existing = await collection.findOne({ alias: data.alias });
       if (existing) {
@@ -70,7 +65,7 @@ export const trackLinkClick = createServerFn({ method: "POST" })
     const userAgent = "";
     
     try {
-      const collection = await _getLinksCollection();
+      const collection = await getCollection("links");
       
       const findResult = await collection.findOne({ alias: data.alias });
       if (!findResult || findResult.active === false) return null;
@@ -121,7 +116,7 @@ export const deleteLink = createServerFn({ method: "POST" })
   .handler(async ({ data }) => {
     try {
       const { ObjectId } = await import("mongodb");
-      const collection = await _getLinksCollection();
+      const collection = await getCollection("links");
       await collection.deleteOne({ 
         _id: new ObjectId(data.id),
         userId: { $regex: new RegExp(`^${data.userId}$`, "i") }
@@ -138,7 +133,7 @@ export const updateLinkStatus = createServerFn({ method: "POST" })
   .handler(async ({ data }) => {
     try {
       const { ObjectId } = await import("mongodb");
-      const collection = await _getLinksCollection();
+      const collection = await getCollection("links");
       await collection.updateOne(
         { 
           _id: new ObjectId(data.id),

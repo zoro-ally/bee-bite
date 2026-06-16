@@ -1,5 +1,5 @@
 import { createFileRoute, redirect } from "@tanstack/react-router";
-import { trackLinkClick } from "../lib/api/links.functions.server";
+import { trackLinkClick } from "../lib/api/links.functions";
 
 export const Route = createFileRoute("/r/$alias")({
   loader: async ({ params }) => {

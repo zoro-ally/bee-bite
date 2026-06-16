@@ -12,7 +12,7 @@ import {
   ResponsiveContainer, AreaChart, Area, XAxis, YAxis, Tooltip, CartesianGrid,
 } from "recharts";
 import { jwtDecode } from "jwt-decode";
-import { getLinks, createLink, deleteLink, updateLinkStatus } from "../lib/api/links.functions.server";
+import { getLinks, createLink, deleteLink, updateLinkStatus } from "../lib/api/links.functions";
 
 export const Route = createFileRoute("/app")({
   head: () => ({
@@ -36,12 +36,12 @@ type LinkRow = {
 };
 
 const SAMPLE: LinkRow[] = [
-  { id: "1", alias: "launch-deck", longUrl: "https://www.notion.so/teams/product/launch-strategy-q3-2026-final-deck-revised", clicks: 1284, createdAt: daysAgo(2), active: true, history: [45,80,120,90,210,380,359] },
-  { id: "2", alias: "yt-keynote", longUrl: "https://www.youtube.com/watch?v=dQw4w9WgXcQ&list=RDMM&start_radio=1", clicks: 842, createdAt: daysAgo(5), active: true, history: [60,90,110,140,120,150,172] },
-  { id: "3", alias: "design-jam", longUrl: "https://figma.com/file/abcdef/Design-Jam-Spring-Edition", clicks: 312, createdAt: daysAgo(9), active: true, history: [10,20,40,55,60,70,57] },
-  { id: "4", alias: "early-access", longUrl: "https://snip.io/signup?ref=earlyaccess&plan=pro&promo=SNIP25", clicks: 2476, createdAt: daysAgo(14), active: true, history: [180,220,300,340,420,500,516] },
-  { id: "5", alias: "weekly-news", longUrl: "https://buttondown.email/snip/archive/issue-42-the-edge-update/", clicks: 98, createdAt: daysAgo(20), active: false, history: [5,10,15,12,18,20,18] },
-  { id: "6", alias: "hire-eng", longUrl: "https://snip.io/careers/senior-frontend-engineer-remote-europe", clicks: 553, createdAt: daysAgo(26), active: true, history: [30,50,70,80,100,110,113] },
+  { id: "1", alias: "launch-deck", longUrl: "https://www.notion.so/teams/product/launch-strategy-q3-2026-final-deck-revised", clicks: 1284, createdAt: daysAgo(2), active: true, history: [45,80,120,90,210,380,359], visits: [] },
+  { id: "2", alias: "yt-keynote", longUrl: "https://www.youtube.com/watch?v=dQw4w9WgXcQ&list=RDMM&start_radio=1", clicks: 842, createdAt: daysAgo(5), active: true, history: [60,90,110,140,120,150,172], visits: [] },
+  { id: "3", alias: "design-jam", longUrl: "https://figma.com/file/abcdef/Design-Jam-Spring-Edition", clicks: 312, createdAt: daysAgo(9), active: true, history: [10,20,40,55,60,70,57], visits: [] },
+  { id: "4", alias: "early-access", longUrl: "https://snip.io/signup?ref=earlyaccess&plan=pro&promo=SNIP25", clicks: 2476, createdAt: daysAgo(14), active: true, history: [180,220,300,340,420,500,516], visits: [] },
+  { id: "5", alias: "weekly-news", longUrl: "https://buttondown.email/snip/archive/issue-42-the-edge-update/", clicks: 98, createdAt: daysAgo(20), active: false, history: [5,10,15,12,18,20,18], visits: [] },
+  { id: "6", alias: "hire-eng", longUrl: "https://snip.io/careers/senior-frontend-engineer-remote-europe", clicks: 553, createdAt: daysAgo(26), active: true, history: [30,50,70,80,100,110,113], visits: [] },
 ];
 
 function daysAgo(n: number) { const d = new Date(); d.setDate(d.getDate() - n); return d; }
