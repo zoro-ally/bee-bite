@@ -1,47 +1,51 @@
 import { MongoClient, ServerApiVersion } from "mongodb";
 import process from "node:process";
 
-const uri = process.env.MONGODB_URI;
+// Use a module-level cached promise, but create it lazily inside getDb()
+// so that the URI is read at REQUEST time (not import time).
+// This is critical for serverless environments (Vercel, Cloudflare Workers)
+// where process.env is only populated per-request.
+let clientPromise: Promise<MongoClient> | undefined;
 
-if (!uri) {
-  throw new Error("Please define the MONGODB_URI environment variable inside .env");
-}
+function getClientPromise(): Promise<MongoClient> {
+  if (clientPromise) return clientPromise;
 
-let client: MongoClient;
-let clientPromise: Promise<MongoClient>;
-
-if (process.env.NODE_ENV === "development") {
-  // In development mode, use a global variable so that the value
-  // is preserved across module reloads caused by HMR (Hot Module Replacement).
-  let globalWithMongo = global as typeof globalThis & {
-    _mongoClientPromise?: Promise<MongoClient>;
-  };
-
-  if (!globalWithMongo._mongoClientPromise) {
-    client = new MongoClient(uri, {
-      serverApi: {
-        version: ServerApiVersion.v1,
-        strict: true,
-        deprecationErrors: true,
-      },
-    });
-    globalWithMongo._mongoClientPromise = client.connect();
+  const uri = process.env.MONGODB_URI;
+  if (!uri) {
+    throw new Error(
+      "Please define the MONGODB_URI environment variable in your .env file or Vercel dashboard."
+    );
   }
-  clientPromise = globalWithMongo._mongoClientPromise;
-} else {
-  // In production mode, it's best to not use a global variable.
-  client = new MongoClient(uri, {
+
+  const client = new MongoClient(uri, {
     serverApi: {
       version: ServerApiVersion.v1,
       strict: true,
       deprecationErrors: true,
     },
   });
+
   clientPromise = client.connect();
+
+  // In development, cache on the global object so HMR doesn't create
+  // a new connection pool on every module reload.
+  if (process.env.NODE_ENV === "development") {
+    (global as any)._mongoClientPromise = clientPromise;
+    const globalWithMongo = global as typeof globalThis & {
+      _mongoClientPromise?: Promise<MongoClient>;
+    };
+    if (globalWithMongo._mongoClientPromise) {
+      clientPromise = globalWithMongo._mongoClientPromise;
+    } else {
+      globalWithMongo._mongoClientPromise = clientPromise;
+    }
+  }
+
+  return clientPromise;
 }
 
 export async function getDb() {
-  const connectedClient = await clientPromise;
+  const connectedClient = await getClientPromise();
   return connectedClient.db(process.env.MONGODB_DATABASE || "link-blossom");
 }
 

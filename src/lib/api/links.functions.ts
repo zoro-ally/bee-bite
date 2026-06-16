@@ -51,6 +51,7 @@ export const createLink = createServerFn({ method: "POST" })
         active: true,
         createdAt: new Date().toISOString(),
         history: [0, 0, 0, 0, 0, 0, 0],
+        visits: [],
       });
       
       return { success: true, id: result.insertedId.toString() };
@@ -63,8 +64,8 @@ export const createLink = createServerFn({ method: "POST" })
 export const trackLinkClick = createServerFn({ method: "POST" })
   .validator(z.object({ alias: z.string() }))
   .handler(async ({ data }) => {
-    // In TanStack Start, we can use the following to get request info
-    const userAgent = ""; // We will use a simpler approach if headers are hard to get
+    // User agent detection — empty string means device defaults to "Desktop"
+    const userAgent = "";
     
     try {
       const collection = await getCollection("links");
@@ -85,18 +86,24 @@ export const trackLinkClick = createServerFn({ method: "POST" })
         location: "Local", // Simple placeholder, could use geoip later
       };
 
+      // Rotate history: shift left and increment last slot for today
+      const existing = await collection.findOne({ alias: data.alias });
+      const currentHistory: number[] = existing?.history ?? [0, 0, 0, 0, 0, 0, 0];
+      // Shift the array and add 1 to today's slot
+      const newHistory = [...currentHistory.slice(1), (currentHistory[6] ?? 0) + 1];
+
       const link = await collection.findOneAndUpdate(
         { alias: data.alias },
         { 
-          $inc: { 
-            clicks: 1,
-            "history.6": 1 
+          $inc: { clicks: 1 },
+          $set: { 
+            lastVisited: new Date().toISOString(),
+            history: newHistory,
           },
-          $set: { lastVisited: new Date().toISOString() },
           $push: { 
             visits: { 
               $each: [newVisit], 
-              $slice: -5 
+              $slice: -50
             } 
           }
         } as any,
